@@ -1,6 +1,3 @@
-from math import log
-from turtle import pos
-from warnings import catch_warnings
 import requests
 from bs4 import BeautifulSoup
 import random
@@ -9,6 +6,7 @@ from post_code import post_code
 import csv
 import logging
 import re
+import datetime
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -16,7 +14,7 @@ logging.basicConfig(filename='archiScrape.log', level=logging.INFO)
 
 
 
-codes = post_code[100]
+codes = post_code[random.randint(0, len(post_code))]
 iter_number = 1
 x = requests.get(f"https://www.architects.nsw.gov.au/component/arbregister/?view=architects&regSearchSuburb={codes}&Itemid=144&start={iter_number}")
 soup = BeautifulSoup(x.text, 'html.parser')
@@ -26,16 +24,14 @@ page_numbers = soup.find("p", class_="counter")
 try:
     test = page_numbers.get_text(strip=True)
     page_iter = re.search(r'\d+$', test).group(0)
+    logger.info(f"{datetime.datetime.now()}: Post code {codes} has only {page_iter} page.")
+
 except:
-    logger.info(f"Post code {codes} has only one page.")
+    page_iter = 1
+    logger.info(f"{datetime.datetime.now()}: Post code {codes} has only 1 page.")
 
-# for iter_codes, codes in enumerate(post_code):
-#     logger.info(f"Searching for post code: {codes}")
-#     iter_number = 1
-#     x = requests.get(f"https://www.architects.nsw.gov.au/component/arbregister/?view=architects&regSearchSuburb={codes}&Itemid=144&start={iter_number}")
-#     soup = BeautifulSoup(x.text, 'html.parser')
-#     page_numbers = soup.find("p", class_="counter")
-
+print(page_iter)
+print(len(soup.find_all('tr')))
 
 
 with open('output.csv', 'w', newline='') as f:
@@ -55,3 +51,10 @@ with open('output.csv', 'w', newline='') as f:
 
         # Write the list to the CSV file
         writer.writerow(row)
+
+        # for iter_codes, codes in enumerate(post_code):
+#     logger.info(f"Searching for post code: {codes}")
+#     iter_number = 1
+#     x = requests.get(f"https://www.architects.nsw.gov.au/component/arbregister/?view=architects&regSearchSuburb={codes}&Itemid=144&start={iter_number}")
+#     soup = BeautifulSoup(x.text, 'html.parser')
+#     page_numbers = soup.find("p", class_="counter")
