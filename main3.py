@@ -17,7 +17,8 @@ iter_number = 1
 # post_codes = post_code[random.randint(0, len(post_code))]
 post_codes = 2121
 
-url = f"https://www.architects.nsw.gov.au/component/arbregister/?view=architects&regSearchSuburb={post_codes}"
+base_url = "https://www.architects.nsw.gov.au"
+url = f"{base_url}/component/arbregister/?view=architects&regSearchSuburb={post_codes}"
 x = requests.get(url)
 soup = BeautifulSoup(x.text, 'html.parser')
 
@@ -53,10 +54,12 @@ def write_rows(class_name):
         writer = csv.writer(f)
         for tr in class_name.find_all('tr'):
             row = []
-            for td in tr.find_all('td'):
-                row.append(td.get_text(strip=True))
             for links in tr.find_all('a'):
-                row.append(links.get('href'))
+                # row.append(links.get('href')) # <- appends the link
+                x = requests.get(base_url+links.get('href'))
+                architects = BeautifulSoup(x.text, 'html.parser')
+                row.append(architects.find('h2').text) #grabs name
+
             writer.writerow(row)        
             
 def check_tr(class_name)-> bool:
