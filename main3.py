@@ -15,7 +15,7 @@ logging.basicConfig(filename='archiScrape.log', level=logging.INFO)
 
 iter_number = 1
 # post_codes = post_code[random.randint(0, len(post_code))]
-post_codes = 2121
+post_codes = 2001
 
 base_url = "https://www.architects.nsw.gov.au"
 url = f"{base_url}/component/arbregister/?view=architects&regSearchSuburb={post_codes}"
@@ -50,18 +50,23 @@ def write_rows(class_name):
             Parameters:
                 class_name: BeautifulSoup object
     '''
-    with open('output.csv', 'a', newline='') as f:
+    with open('output2.csv', 'a', newline='') as f:
         writer = csv.writer(f)
-        for tr in class_name.find_all('tr'):
+        for tr in class_name.find_all('td'):
             row = []
-            for links in tr.find_all('a'):
-                # row.append(links.get('href')) # <- appends the link
-                x = requests.get(base_url+links.get('href'))
-                architects = BeautifulSoup(x.text, 'html.parser')
-                row.append(architects.find('h2').text) #grabs name
+            for links in tr.find_all('a', href=True):
+                logger.info(f"Link: {base_url}{links.get('href')}")
+                architect_link = requests.get(base_url+links.get('href'))
+                architects = BeautifulSoup(architect_link.text, 'html.parser')
+                inner_row = []
+                for td in architects.find_all('td'):
+                    inner_row.append(td.get_text(strip=True))
+                inner_row.append(architects.find('h2')) #grabs name
+                print(inner_row)
 
             writer.writerow(row)        
             
+
 def check_tr(class_name)-> bool:
     '''
         checks if there is any 'tr' in the class
